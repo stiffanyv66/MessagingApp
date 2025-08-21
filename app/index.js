@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -30,6 +30,16 @@ export default function App() {
     setMessages([...messages, newMessage]);
     setInputText('');
   };
+
+  // Format the timestamp for display
+  const formatTime = (date) => {
+    return date.toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
 
   const renderMessage = ({ item }) => (
     <View style={[
