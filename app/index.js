@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import {
   FlatList,
+  Image,
   KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
+
+//import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import {
   addDoc,
@@ -47,6 +49,7 @@ export default function App() {
 
 
   const sendMessage = async () => {
+    const cuteInput = input + ' 💕';
     if (setInput.trim() === '') return;
 
     try {
@@ -109,14 +112,26 @@ export default function App() {
   }
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      contentContainerStyle={{ flexGrow: 1 }}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
+      //behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Chat App</Text>
+        <View style = {styles.headerImageContainer}>
+          <Image
+            source = {require('/Users/stiffanyvillanueva/MessagingApp/assets/images/MiffyPurple.png')}
+            style = {[styles.headerImage, {width: 100, height: 100, marginRight:10}, {alignItems: 'center'}]}
+            
+            />
+          <View>
+        <Text style={styles.headerTitle}>Miffy Messages</Text>
         <Text style = {styles.headerSubtitle}>{messages.length} messages</Text>
+        </View> 
+      </View>
       </View>
 
       {/* Messages */}
@@ -126,6 +141,7 @@ export default function App() {
         keyExtractor={item => item.id}
         style={styles.messagesList}
         showsVerticalScrollIndicator={false}
+        scrollEnabled = {true}
       />
 
       {/* Input Area */}
@@ -134,7 +150,8 @@ export default function App() {
           style={styles.textInput}
           value={input}
           onChangeText={setInput}
-          placeholder="Type a message..."
+         // color='black'
+          placeholder="Type a message...<3"
           multiline
         />
         <TouchableOpacity 
@@ -154,7 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#db8acecc',
     paddingTop: 50,
     paddingBottom: 15,
     paddingHorizontal: 20,
@@ -182,7 +199,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 5,
   },
   otherMessage: {
-    backgroundColor: '#e5e5e7',
+    backgroundColor: '#db8acecc',
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 5,
   },
@@ -211,9 +228,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
     maxHeight: 100,
     fontSize: 16,
+    color: 'black',
   },
   sendButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#f1add7cc',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -255,4 +273,6 @@ const styles = StyleSheet.create({
     color: '#555',
     alignSelf: 'flex-start',
   },
+
+
 });
