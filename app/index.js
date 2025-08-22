@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -10,17 +10,59 @@ import {
   View
 } from 'react-native';
 
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  orderBy,
+  query
+} from 'firebase/firestore';
+import { db } from './firebaseConfig';
+
 export default function App() {
-  const [messages, setMessages] = useState([
+
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(true);
+ /* const [messages, setMessages] = useState([
     { id: '1', text: 'Hey there!', sender: 'other', timestamp: new Date() },
     { id: '2', text: 'Hi! How are you?', sender: 'me', timestamp: new Date() },
-  ]);
-  const [inputText, setInputText] = useState('');
+  ]); */
+  //const [inputText, setInputText] = useState('');
 
-  const sendMessage = () => {
-    if (inputText.trim() === '') return;
+  useEffect(() => {
+    const messagesRef = collection(db, 'messages');
+    const q = query(messagesRef, orderBy('timestamp', 'asc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const msgs = [];
+      querySnapshot.forEach((doc) => {
+        msgs.push({ id: doc.id, ...doc.data() });
+      });
+      setMessages(msgs);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
+  const sendMessage = async () => {
+    if (setInput.trim() === '') return;
+
+    try {
+      await addDoc(collection(db, 'messages'), {
+        text: setInput,
+        sender: 'me',
+        timestamp: new Date()
+      });
+      setInput('');
+    } catch (error) {
+      console.error("Error sending message: ", error);
+    }
+  }
+
     
-    const newMessage = {
+  /*  const newMessage = {
       id: Date.now().toString(),
       text: inputText,
       sender: 'me',
@@ -29,11 +71,11 @@ export default function App() {
     
     setMessages([...messages, newMessage]);
     setInputText('');
-  };
+  }; */
 
   // Format the timestamp for display
   const formatTime = (date) => {
-    return date.toLocaleTimeString([], {
+    return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
@@ -52,8 +94,19 @@ export default function App() {
       ]}>
         {item.text}
       </Text>
+        <Text style = {[styles.timestampText, item.sender === 'me' ? styles.myTimestampText : styles.otherTimestampText]}>
+          {formatTime(item.timestamp)}
+        </Text>
     </View>
   );
+
+  if(loading) {
+    return (
+      <View style = {styles.loadingContainer}>
+        <Text style = {styles.loadingText}>Loading...</Text>
+      </View> 
+    )
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -63,6 +116,7 @@ export default function App() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Chat App</Text>
+        <Text style = {styles.headerSubtitle}>{messages.length} messages</Text>
       </View>
 
       {/* Messages */}
@@ -78,8 +132,8 @@ export default function App() {
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.textInput}
-          value={inputText}
-          onChangeText={setInputText}
+          value={input}
+          onChangeText={setInput}
           placeholder="Type a message..."
           multiline
         />
@@ -168,5 +222,37 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+
+  headerSubtitle: {
+    color: 'white',
+    fontSize: 14,
+    marginTop: 5,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  loadingText: {
+    fontSize: 18,
+    color: '#555',
+  },
+
+  timestampText: {
+    fontSize: 10,
+    marginTop: 5,
+  },
+
+  myTimestampText: {
+    color: '#d1e3ff',
+    alignSelf: 'flex-end',
+  }, 
+
+  otherTimestampText: {
+    color: '#555',
+    alignSelf: 'flex-start',
   },
 });
